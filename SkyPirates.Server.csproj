@@ -5,7 +5,16 @@
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>disabled</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>DVG.SkyPirates.Server</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.0" />
+    <PackageReference Include="SimpleInjector" Version="5.5.0" />
+    <Content Include="Configs/**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\SkyPirates.Shared.csproj" />
