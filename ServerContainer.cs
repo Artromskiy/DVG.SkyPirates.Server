@@ -26,9 +26,9 @@ namespace DVG.SkyPirates.Server
             Register<IInputService, InputService>(Lifestyle.Scoped);
             Register<IUnitViewSyncer, NetworkedUnitViewSyncer>(Lifestyle.Scoped);
             Register<IClientConnectionService, ClientConnectionService>(Lifestyle.Scoped);
-            Register<IMessageSendService, MessageSendService>(Lifestyle.Scoped);
-            Register<IMessageRecieveService, MessageRecieveService>(Lifestyle.Scoped);
-
+            Register<ICommandSendService, CommandSendService>(Lifestyle.Scoped);
+            Register<ICommandRecieveService, CommandRecieveService>(Lifestyle.Scoped);
+            
             Register<IPlayerLoopSystem, PlayerLoopSystem>(Lifestyle.Scoped);
             RegisterInitializer<IPlayerLoopItem>((item) => GetInstance<IPlayerLoopSystem>().Add(item));
 

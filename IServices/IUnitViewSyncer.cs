@@ -1,6 +1,6 @@
 ﻿using DVG.SkyPirates.Shared.IViews;
 
-namespace DVG.SkyPirates.Server.Services
+namespace DVG.SkyPirates.Server.IServices
 {
     internal interface IUnitViewSyncer
     {
