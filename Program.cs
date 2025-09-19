@@ -1,9 +1,7 @@
-﻿using DVG.Core;
-using DVG.SkyPirates.Server.Presenters;
-using Riptide.Utils;
-using SimpleInjector.Lifestyles;
+﻿using Riptide.Utils;
 using System;
-using System.Threading;
+using System.Net.Sockets;
+using System.Net;
 
 namespace DVG.SkyPirates.Server
 {
@@ -11,21 +9,38 @@ namespace DVG.SkyPirates.Server
     {
         private static void Main(string[] args)
         {
-            ServerContainer serverScope = new ServerContainer();
-            using var _scope = AsyncScopedLifestyle.BeginScope(serverScope);
-            var world = _scope.GetInstance<WorldPresenter>();
-            var playerLoop = _scope.GetInstance<IPlayerLoopSystem>();
-            playerLoop.ExceptionHandler += Console.WriteLine;
-            var server = _scope.GetInstance<Riptide.Server>();
+            ServerContainer container = new ServerContainer();
+            var server = container.GetInstance<Riptide.Server>();
+            server.ClientConnected += Server_ClientConnected;
             RiptideLogger.Initialize(Console.WriteLine, true);
             server.Start(7777, 16, useMessageHandlers: false);
+            LogIPs();
             while (true)
             {
                 server.Update();
-                playerLoop.Tick();
-                playerLoop.FixedTick();
-                Thread.Yield();
+                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                {
+                    Console.WriteLine("Started");
+                    break;
+                }
             }
+
+            container.GetInstance<GameStartController>().Begin();
+        }
+
+        private static void Server_ClientConnected(object? sender, Riptide.ServerConnectedEventArgs e)
+        {
+            e.Client.CanQualityDisconnect = false;
+            e.Client.TimeoutTime = 10_000;
+        }
+
+        private static void LogIPs()
+        {
+            var host = Dns.GetHostEntry(Dns.GetHostName(), AddressFamily.InterNetwork);
+            Console.WriteLine("IPs:");
+
+            foreach (var ip in host.AddressList)
+                Console.WriteLine(ip.ToString());
         }
     }
 }

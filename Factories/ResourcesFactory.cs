@@ -1,5 +1,5 @@
 ﻿using DVG.Core;
-using Newtonsoft.Json;
+using DVG.SkyPirates.Shared.Tools.Json;
 using System.IO;
 
 namespace DVG.SkyPirates.Server.Factories
@@ -8,8 +8,9 @@ namespace DVG.SkyPirates.Server.Factories
     {
         public T Create(string parameters)
         {
-            var text = File.ReadAllText(parameters + ".json");
-            return JsonConvert.DeserializeObject<T>(text);
+            var path = Path.Combine("Resources", parameters);
+            var text = File.ReadAllText(path + ".json");
+            return Serialization.Deserialize<T>(text);
         }
     }
 }

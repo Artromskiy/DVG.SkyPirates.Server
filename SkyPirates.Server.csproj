@@ -10,14 +10,14 @@
 
   <ItemGroup>
     <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.0" />
-    <PackageReference Include="SimpleInjector" Version="5.5.0" />
-    <Content Include="Configs/**">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-    </ItemGroup>
+  </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Shared\SkyPirates.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Presenters\" />
   </ItemGroup>
 
 </Project>

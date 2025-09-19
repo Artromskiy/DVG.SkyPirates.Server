@@ -5,8 +5,8 @@ namespace DVG.SkyPirates.Server.Services
 {
     internal class ClientConnectionService : IClientConnectionService
     {
-        public event Action<ushort>? OnClientConnected;
-        public event Action<ushort>? OnClientDisconnected;
+        public event Action<int>? OnClientConnected;
+        public event Action<int>? OnClientDisconnected;
 
         private readonly Riptide.Server _server;
 

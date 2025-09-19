@@ -1,17 +1,20 @@
 ﻿using DVG.Core;
 using DVG.SkyPirates.Server.Factories;
-using DVG.SkyPirates.Server.IFactories;
 using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Server.Presenters;
 using DVG.SkyPirates.Server.Services;
-
+using DVG.SkyPirates.Server.Services.CommandMutators;
+using DVG.SkyPirates.Server.Services.CommandValidators;
+using DVG.SkyPirates.Shared.Data;
+using DVG.SkyPirates.Shared.DI;
+using DVG.SkyPirates.Shared.Factories;
 using DVG.SkyPirates.Shared.IFactories;
-using DVG.SkyPirates.Shared.Models;
-
+using DVG.SkyPirates.Shared.IServices;
+using DVG.SkyPirates.Shared.IServices.TickableExecutors;
+using DVG.SkyPirates.Shared.Services.CommandSerializers;
+using Riptide.Transports.Udp;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
-using SimpleInjector.Lifestyles;
-using System.Diagnostics;
+using System;
 
 namespace DVG.SkyPirates.Server
 {
@@ -19,27 +22,45 @@ namespace DVG.SkyPirates.Server
     {
         public ServerContainer() : base()
         {
-            Options.DefaultScopedLifestyle = new AsyncScopedLifestyle();
+            Register(() => new Riptide.Server(new UdpServer()), Lifestyle.Singleton);
+            Register<ICommandSerializer, JsonCommandSerializer>(Lifestyle.Singleton);
+            Register<ICommandSendService, CommandSendService>(Lifestyle.Singleton);
+            Register<ICommandRecieveService, CommandRecieveService>(Lifestyle.Singleton);
+            Register<ICheatLoggerService, CheatLoggerService>(Lifestyle.Singleton);
 
-            Register<Riptide.Server>(() => new Riptide.Server(), Lifestyle.Scoped);
-            Register<IUnitViewFactory, NetworkedUnitViewFactory>(Lifestyle.Scoped);
-            Register<IInputService, InputService>(Lifestyle.Scoped);
-            Register<IUnitViewSyncer, NetworkedUnitViewSyncer>(Lifestyle.Scoped);
-            Register<IClientConnectionService, ClientConnectionService>(Lifestyle.Scoped);
-            Register<ICommandSendService, CommandSendService>(Lifestyle.Scoped);
-            Register<ICommandRecieveService, CommandRecieveService>(Lifestyle.Scoped);
-            
-            Register<IPlayerLoopSystem, PlayerLoopSystem>(Lifestyle.Scoped);
-            RegisterInitializer<IPlayerLoopItem>((item) => GetInstance<IPlayerLoopSystem>().Add(item));
+            // Validate => Mutate => Execute
+            var commandValidators = new Type[]
+            {
+                typeof(EmptyCommandValidator)
+            };
+            Register<ICommandValidatorService, CommandValidatorService>(Lifestyle.Singleton);
+            Collection.Register<ICommandValidator>(commandValidators, Lifestyle.Singleton);
 
-            Register<IPathFactory<SquadModel>, ResourcesFactory<SquadModel>>(Lifestyle.Scoped);
-            Register<IPathFactory<UnitModel>, ResourcesFactory<UnitModel>>(Lifestyle.Scoped);
-            Register<IPathFactory<PackedCirclesModel>, ResourcesFactory<PackedCirclesModel>>(Lifestyle.Scoped);
-            Register<IUnitModelFactory, UnitModelFactory>(Lifestyle.Scoped);
-            Register<IUnitFactory, UnitFactory>(Lifestyle.Scoped);
-            Register<IInputFactory, InputFactory>(Lifestyle.Scoped);
+            var commandMutators = new Type[]
+            {
+                typeof(EmptyCommandMutator),
+                typeof(SpawnCommandMutator)
+            };
+            Register<ICommandMutatorService, CommandMutatorService>(Lifestyle.Singleton);
+            Collection.Register<ICommandMutator>(commandMutators, Lifestyle.Singleton);
 
-            Register<WorldPresenter>(Lifestyle.Scoped);
+            Register<IClientConnectionService, ClientConnectionService>(Lifestyle.Singleton);
+            Register<CommandsResender>(Lifestyle.Singleton);
+
+            Register(typeof(IPathFactory<>), typeof(ResourcesFactory<>),Lifestyle.Singleton);
+            //Register<IPathFactory<SquadConfig>, ResourcesFactory<SquadConfig>>(Lifestyle.Singleton);
+            //Register<IPathFactory<UnitConfig>, ResourcesFactory<UnitConfig>>(Lifestyle.Singleton);
+            //Register<IPathFactory<PackedCirclesConfig>, ResourcesFactory<PackedCirclesConfig>>(Lifestyle.Singleton);
+            Register<IUnitConfigFactory, UnitConfigFactory>(Lifestyle.Singleton);
+            Register<IUnitFactory, UnitFactory>(Lifestyle.Singleton);
+            Register<ISquadFactory, SquadFactory>(Lifestyle.Singleton);
+
+            Register<GameStartController>(Lifestyle.Singleton);
+
+            var postTickableExecutors = new Type[] { };
+            Collection.Register<IPostTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
+
+            SharedRegistration.Register(this);
 
             Verify(VerificationOption.VerifyAndDiagnose);
             Analyze(this);
@@ -48,9 +69,7 @@ namespace DVG.SkyPirates.Server
         private static void Analyze(Container container)
         {
             foreach (var item in Analyzer.Analyze(container))
-            {
-                Debug.WriteLine(item.Description);
-            }
+                Console.WriteLine(item.Description);
         }
     }
 }
