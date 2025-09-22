@@ -4,13 +4,13 @@ using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Server.Services;
 using DVG.SkyPirates.Server.Services.CommandMutators;
 using DVG.SkyPirates.Server.Services.CommandValidators;
-using DVG.SkyPirates.Shared.Data;
 using DVG.SkyPirates.Shared.DI;
 using DVG.SkyPirates.Shared.Factories;
 using DVG.SkyPirates.Shared.IFactories;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using DVG.SkyPirates.Shared.Services.CommandSerializers;
+using DVG.SkyPirates.Shared.Systems.HistorySystems;
 using Riptide.Transports.Udp;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
@@ -47,14 +47,13 @@ namespace DVG.SkyPirates.Server
             Register<IClientConnectionService, ClientConnectionService>(Lifestyle.Singleton);
             Register<CommandsResender>(Lifestyle.Singleton);
 
-            Register(typeof(IPathFactory<>), typeof(ResourcesFactory<>),Lifestyle.Singleton);
+            Register(typeof(IPathFactory<>), typeof(ResourcesFactory<>), Lifestyle.Singleton);
             //Register<IPathFactory<SquadConfig>, ResourcesFactory<SquadConfig>>(Lifestyle.Singleton);
             //Register<IPathFactory<UnitConfig>, ResourcesFactory<UnitConfig>>(Lifestyle.Singleton);
             //Register<IPathFactory<PackedCirclesConfig>, ResourcesFactory<PackedCirclesConfig>>(Lifestyle.Singleton);
             Register<IUnitConfigFactory, UnitConfigFactory>(Lifestyle.Singleton);
             Register<IUnitFactory, UnitFactory>(Lifestyle.Singleton);
             Register<ISquadFactory, SquadFactory>(Lifestyle.Singleton);
-
             Register<GameStartController>(Lifestyle.Singleton);
 
             var postTickableExecutors = new Type[] { };

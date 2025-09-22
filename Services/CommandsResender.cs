@@ -10,7 +10,8 @@ namespace DVG.SkyPirates.Server.Services
     {
         public CommandsResender(ICommandRecieveService commandRecieveService, ICommandSendService commandSendService)
         {
-            CommandIds.ForEachData(new RegisterResendAction(commandRecieveService, commandSendService));
+            var action = new RegisterResendAction(commandRecieveService, commandSendService);
+            CommandIds.ForEachData(ref action);
         }
 
         private readonly struct RegisterResendAction : IGenericAction<ICommandData>

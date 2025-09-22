@@ -15,10 +15,8 @@ namespace DVG.SkyPirates.Server
         private readonly ICommandSendService _sendService;
         private readonly ICommandRecieveService _recieveService;
         private readonly ITimelineService _timeline;
-
-
-        Stopwatch _mainSw = new();
-        Stopwatch _perfSw = new();
+        private readonly Stopwatch _mainSw = new();
+        private readonly Stopwatch _perfSw = new();
 
         public GameStartController(Riptide.Server server, ICommandSendService sendService, ICommandRecieveService recieveService, ITimelineService timeline)
         {
@@ -35,7 +33,7 @@ namespace DVG.SkyPirates.Server
             {
                 _recieveService.InvokeCommand(new Command<SpawnSquadCommand>(0, item.Id, 0, new()));
             }
-            
+
             Loop();
         }
 

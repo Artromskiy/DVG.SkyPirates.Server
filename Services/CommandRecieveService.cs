@@ -1,7 +1,6 @@
 ﻿using DVG.Core;
 using DVG.Core.Commands;
 using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Shared.Ids;
 using DVG.SkyPirates.Shared.IServices;
 using Riptide;
 using System;
@@ -75,7 +74,7 @@ namespace DVG.SkyPirates.Server.Services
 
         public void InvokeCommand<T>(Command<T> cmd) where T : ICommandData
         {
-            if (_registeredRecievers.TryGetValue(cmd.CommandId, out var callback) && 
+            if (_registeredRecievers.TryGetValue(cmd.CommandId, out var callback) &&
                 callback is ActionContainer<T> castedCallback)
                 castedCallback.Invoke(cmd);
         }
@@ -108,8 +107,8 @@ namespace DVG.SkyPirates.Server.Services
             public void Invoke(Message m, int clientId)
             {
                 Command<T> cmd = GetCommand(m);
-                if (_cheatLogger.AssertCheating(clientId != cmd.ClientId, clientId, CheatingId.Constants.WrongClientId))
-                    return;
+                //if (_cheatLogger.AssertCheating(clientId != cmd.ClientId, clientId, CheatingId.Constants.WrongClientId))
+                //    return;
 
                 cmd = cmd.WithClientId(clientId);
 
