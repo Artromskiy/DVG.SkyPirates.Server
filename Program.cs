@@ -1,5 +1,4 @@
-﻿using Riptide.Transports.Udp;
-using Riptide.Utils;
+﻿using Riptide.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -12,10 +11,9 @@ namespace DVG.SkyPirates.Server
         {
             ServerContainer container = new ServerContainer();
             var server = container.GetInstance<Riptide.Server>();
-            
             server.ClientConnected += Server_ClientConnected;
             RiptideLogger.Initialize(Console.WriteLine, true);
-            server.Start(7777, 16, useMessageHandlers: false);
+            server.Start(7788, 16, useMessageHandlers: false);
             LogIPs();
             while (true)
             {
@@ -33,7 +31,7 @@ namespace DVG.SkyPirates.Server
         private static void Server_ClientConnected(object? sender, Riptide.ServerConnectedEventArgs e)
         {
             e.Client.MaxSendAttempts = 500;
-            e.Client.TimeoutTime = 100_000;
+            e.Client.TimeoutTime = 5_000;
         }
 
         private static void LogIPs()

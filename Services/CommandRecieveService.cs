@@ -111,9 +111,8 @@ namespace DVG.SkyPirates.Server.Services
                 //    return;
 
                 cmd = cmd.WithClientId(clientId);
-
                 if (!_commandsValidator.ValidateCommand(cmd))
-                    return;
+                    throw new InvalidOperationException();
 
                 Invoke(cmd);
             }
@@ -121,7 +120,7 @@ namespace DVG.SkyPirates.Server.Services
             public void Invoke(Command<T> cmd)
             {
                 cmd = _commandMutator.Mutate(cmd);
-                Recievers?.Invoke(cmd);
+                Recievers?.Invoke(cmd); 
             }
 
             private Command<T> GetCommand(Message message)
