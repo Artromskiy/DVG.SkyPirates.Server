@@ -5,12 +5,12 @@ using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using System;
 using System.Diagnostics;
+using System.Threading;
 
 namespace DVG.SkyPirates.Server
 {
     public class GameStartController
     {
-        private static readonly fix TargetFrameRate = Constants.TicksPerSecond;
         private readonly Riptide.Server _server;
         private readonly ICommandSendService _sendService;
         private readonly ICommandRecieveService _recieveService;
@@ -28,19 +28,19 @@ namespace DVG.SkyPirates.Server
 
         public void Begin()
         {
-            _sendService.SendToAll(new Command<StartGameCommand>());
             foreach (var item in _server.Clients)
             {
                 _recieveService.InvokeCommand(new Command<SpawnSquadCommand>(0, item.Id, 0, new()));
             }
-
+            Thread.Sleep(1000);
+            _sendService.SendToAll(new Command<StartGameCommand>());
             Loop();
         }
 
         private void Loop()
         {
             int lastFrame = 0;
-            var frameTimeInMs = 1000 / TargetFrameRate;
+            var frameTimeInMs = (fix)1000 / Constants.TicksPerSecond;
             _mainSw.Start();
 
             while (true)
@@ -57,6 +57,7 @@ namespace DVG.SkyPirates.Server
                     Console.WriteLine($"Elapsed: {_perfSw.Elapsed.TotalMilliseconds}");
                 }
                 lastFrame = tickFrame;
+                Thread.Yield();
             }
         }
     }

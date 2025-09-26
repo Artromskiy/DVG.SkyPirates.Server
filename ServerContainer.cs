@@ -56,6 +56,7 @@ namespace DVG.SkyPirates.Server
             Register<GameStartController>(Lifestyle.Singleton);
 
             var postTickableExecutors = new Type[] { };
+            Collection.Register<IPreTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
             Collection.Register<IPostTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
 
             SharedRegistration.Register(this);

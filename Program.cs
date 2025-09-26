@@ -1,4 +1,6 @@
-﻿using Riptide.Utils;
+﻿using DVG.SkyPirates.Shared;
+using Riptide;
+using Riptide.Utils;
 using System;
 using System.Net;
 using System.Net.Sockets;
@@ -11,7 +13,9 @@ namespace DVG.SkyPirates.Server
         {
             ServerContainer container = new ServerContainer();
             var server = container.GetInstance<Riptide.Server>();
+            server.ClientDisconnected += Server_ClientDisconnected;
             server.ClientConnected += Server_ClientConnected;
+            server.HeartbeatInterval = 1000 / Constants.TicksPerSecond;
             RiptideLogger.Initialize(Console.WriteLine, true);
             server.Start(7788, 16, useMessageHandlers: false);
             LogIPs();
@@ -28,10 +32,16 @@ namespace DVG.SkyPirates.Server
             container.GetInstance<GameStartController>().Begin();
         }
 
-        private static void Server_ClientConnected(object? sender, Riptide.ServerConnectedEventArgs e)
+        private static void Server_ClientDisconnected(object? sender, ServerDisconnectedEventArgs e)
+        {
+            Console.WriteLine($"Client {e.Client} disconnected: {e.Reason}");
+        }
+
+        private static void Server_ClientConnected(object? sender, ServerConnectedEventArgs e)
         {
             e.Client.MaxSendAttempts = 500;
             e.Client.TimeoutTime = 5_000;
+            e.Client.CanQualityDisconnect = false;
         }
 
         private static void LogIPs()
