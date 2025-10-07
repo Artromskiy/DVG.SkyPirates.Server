@@ -1,62 +1,56 @@
 ﻿using DVG.Core;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.IServices;
+using DVG.SkyPirates.Shared.Services;
 using Riptide;
-using System;
-using System.Buffers;
+using System.Collections.Generic;
 
 namespace DVG.SkyPirates.Server.Services
 {
     internal class CommandSendService : ICommandSendService
     {
         private readonly Riptide.Server _server;
-        private byte[] _tempBytes = Array.Empty<byte>();
-        private readonly ICommandSerializer _commandSerializer;
-        private readonly ArrayBufferWriter<byte> _buffer;
+
+        private readonly MessageIO _messageWriter;
+        private readonly List<Message> _messages = new();
 
         public CommandSendService(Riptide.Server server, ICommandSerializer commandSerializer)
         {
-            _buffer = new ArrayBufferWriter<byte>();
             _server = server;
-            _commandSerializer = commandSerializer;
+            _messageWriter = new MessageIO(commandSerializer);
         }
-
 
         public void SendTo<T>(Command<T> data, int clientId)
             where T : ICommandData
         {
-            var message = CreateMessage(data);
-            _server.Send(message, (ushort)clientId);
+            _messages.Clear();
+            _messageWriter.GetMessages(data, _messages);
+            foreach (var message in _messages)
+            {
+                _server.Send(message, (ushort)clientId);
+            }
         }
 
         public void SendToAll<T>(Command<T> data)
             where T : ICommandData
         {
-            var message = CreateMessage(data);
-            _server.SendToAll(message);
+            _messages.Clear();
+            _messageWriter.GetMessages(data, _messages);
+            foreach (var message in _messages)
+            {
+                _server.SendToAll(message);
+            }
         }
 
         public void SendToAll<T>(Command<T> data, int exceptClient)
             where T : ICommandData
         {
-            var message = CreateMessage(data);
-            _server.SendToAll(message, (ushort)exceptClient);
+            _messages.Clear();
+            _messageWriter.GetMessages(data, _messages);
+            foreach (var message in _messages)
+            {
+                _server.SendToAll(message, (ushort)exceptClient);
+            }
         }
-
-        private Message CreateMessage<T>(Command<T> data)
-            where T : ICommandData
-        {
-            _buffer.ResetWrittenCount();
-            _commandSerializer.Serialize(_buffer, ref data);
-            int length = _buffer.WrittenCount;
-            if (length > _tempBytes.Length)
-                Array.Resize(ref _tempBytes, length);
-            _buffer.WrittenSpan.CopyTo(_tempBytes);
-            var id = data.CommandId;
-            Message message = Message.Create(MessageSendMode.Reliable, (ushort)id);
-            message.AddBytes(_tempBytes, 0, length);
-            return message;
-        }
-
     }
 }

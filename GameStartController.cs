@@ -1,7 +1,4 @@
-﻿using DVG.Core;
-using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Shared;
-using DVG.SkyPirates.Shared.Commands;
+﻿using DVG.SkyPirates.Shared;
 using DVG.SkyPirates.Shared.IServices;
 using System;
 using System.Diagnostics;
@@ -12,28 +9,22 @@ namespace DVG.SkyPirates.Server
     public class GameStartController
     {
         private readonly Riptide.Server _server;
-        private readonly ICommandSendService _sendService;
-        private readonly ICommandRecieveService _recieveService;
         private readonly ITimelineService _timeline;
+        private readonly WorldIniter _worldIniter;
         private readonly Stopwatch _mainSw = new();
         private readonly Stopwatch _perfSw = new();
 
-        public GameStartController(Riptide.Server server, ICommandSendService sendService, ICommandRecieveService recieveService, ITimelineService timeline)
+        public GameStartController(Riptide.Server server, ITimelineService timeline, WorldIniter worldIniter)
         {
             _server = server;
-            _sendService = sendService;
-            _recieveService = recieveService;
             _timeline = timeline;
+            _worldIniter = worldIniter;
         }
 
         public void Begin()
         {
-            foreach (var item in _server.Clients)
-            {
-                _recieveService.InvokeCommand(new Command<SpawnSquadCommand>(0, item.Id, 0, new()));
-            }
-            Thread.Sleep(1000);
-            _sendService.SendToAll(new Command<StartGameCommand>());
+            _worldIniter.Init();
+            //Thread.Sleep(1000);
             Loop();
         }
 
@@ -53,6 +44,7 @@ namespace DVG.SkyPirates.Server
                 {
                     _perfSw.Restart();
                     _timeline.Tick();
+                    
                     _perfSw.Stop();
                     Console.WriteLine($"Elapsed: {_perfSw.Elapsed.TotalMilliseconds}");
                 }

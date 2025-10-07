@@ -21,18 +21,18 @@ namespace DVG.SkyPirates.Server
     {
         public ServerContainer() : base()
         {
-            Register(() => new Riptide.Server(new UdpServer()), Lifestyle.Singleton);
-            Register<ICommandSerializer, JsonCommandSerializer>(Lifestyle.Singleton);
-            Register<ICommandSendService, CommandSendService>(Lifestyle.Singleton);
-            Register<ICommandRecieveService, CommandRecieveService>(Lifestyle.Singleton);
-            Register<ICheatLoggerService, CheatLoggerService>(Lifestyle.Singleton);
+            RegisterSingleton(() => new Riptide.Server(new UdpServer()));
+            RegisterSingleton<ICommandSerializer, CompressedJsonUTF8Serializer>();
+            RegisterSingleton<ICommandSendService, CommandSendService>();
+            RegisterSingleton<ICommandRecieveService, CommandRecieveService>();
+            RegisterSingleton<ICheatLoggerService, CheatLoggerService>();
 
             // Validate => Mutate => Execute
             var commandValidators = new Type[]
             {
                 typeof(EmptyCommandValidator)
             };
-            Register<ICommandValidatorService, CommandValidatorService>(Lifestyle.Singleton);
+            RegisterSingleton<ICommandValidatorService, CommandValidatorService>();
             Collection.Register<ICommandValidator>(commandValidators, Lifestyle.Singleton);
 
             var commandMutators = new Type[]
@@ -40,23 +40,23 @@ namespace DVG.SkyPirates.Server
                 typeof(EmptyCommandMutator),
                 typeof(SpawnCommandMutator)
             };
-            Register<ICommandMutatorService, CommandMutatorService>(Lifestyle.Singleton);
+            RegisterSingleton<ICommandMutatorService, CommandMutatorService>();
             Collection.Register<ICommandMutator>(commandMutators, Lifestyle.Singleton);
 
-            Register<IClientConnectionService, ClientConnectionService>(Lifestyle.Singleton);
-            Register<CommandsResender>(Lifestyle.Singleton);
+            RegisterSingleton<IClientConnectionService, ClientConnectionService>();
+            RegisterSingleton<CommandsResender>();
 
-            Register(typeof(IPathFactory<>), typeof(ResourcesFactory<>), Lifestyle.Singleton);
-            //Register<IPathFactory<SquadConfig>, ResourcesFactory<SquadConfig>>(Lifestyle.Singleton);
-            //Register<IPathFactory<UnitConfig>, ResourcesFactory<UnitConfig>>(Lifestyle.Singleton);
-            //Register<IPathFactory<PackedCirclesConfig>, ResourcesFactory<PackedCirclesConfig>>(Lifestyle.Singleton);
-            Register<IUnitConfigFactory, UnitConfigFactory>(Lifestyle.Singleton);
-            Register<IUnitFactory, UnitFactory>(Lifestyle.Singleton);
-            Register<ISquadFactory, SquadFactory>(Lifestyle.Singleton);
-            Register<GameStartController>(Lifestyle.Singleton);
+            RegisterSingleton(typeof(IPathFactory<>), typeof(ResourcesFactory<>));
 
-            var postTickableExecutors = new Type[] { };
-            Collection.Register<IPreTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
+            RegisterSingleton<GameStartController>();
+            RegisterSingleton<WorldIniter>();
+
+            var preTickableExecutors = Array.Empty<Type>();
+            var postTickableExecutors = new Type[]
+            {
+                typeof(SendTickSyncCommandSystem)
+            };
+            Collection.Register<IPreTickableExecutor>(preTickableExecutors, Lifestyle.Singleton);
             Collection.Register<IPostTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
 
             SharedRegistration.Register(this);

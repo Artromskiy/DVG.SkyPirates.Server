@@ -25,7 +25,6 @@ namespace DVG.SkyPirates.Server.Services
             return true;
             bool isValid = true;
 
-            isValid &= !_cheatLogger.AssertCheating(OwnershipCheating(cmd), cmd.ClientId, CheatingId.Constants.NoOwnershipCommand);
             isValid &= !_cheatLogger.AssertCheating(FutureTimeCheating(cmd), cmd.ClientId, CheatingId.Constants.FutureCommand);
 
             foreach (var item in _validators)
@@ -37,13 +36,6 @@ namespace DVG.SkyPirates.Server.Services
             }
 
             return !isValid;
-        }
-
-        private bool OwnershipCheating<T>(Command<T> cmd) where T : ICommandData
-        {
-            return false;
-            //bool exist = _instanceIdsService.HasEntity(cmd.EntityId);
-            //return exist && !_ownershipService.HasOwnership(cmd.ClientId, cmd.EntityId);
         }
 
         private static bool FutureTimeCheating<T>(Command<T> cmd) where T : ICommandData
