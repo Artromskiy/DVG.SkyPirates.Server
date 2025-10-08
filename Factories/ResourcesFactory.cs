@@ -10,7 +10,7 @@ namespace DVG.SkyPirates.Server.Factories
         {
             var path = Path.Combine("Resources", parameters);
             var text = File.ReadAllText(path + ".json");
-            return Serialization.Deserialize<T>(text);
+            return SerializationUTF8.Deserialize<T>(text);
         }
     }
 }

@@ -21,7 +21,6 @@ namespace DVG.SkyPirates.Server
             _container = new ServerContainer();
             RiptideLogger.Initialize(Console.WriteLine, true);
             Message.MaxPayloadSize = 256;
-
             var server = _container.GetInstance<Riptide.Server>();
             server.ClientDisconnected += Server_ClientDisconnected;
             server.ClientConnected += Server_ClientConnected;

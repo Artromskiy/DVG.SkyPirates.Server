@@ -44,7 +44,7 @@ namespace DVG.SkyPirates.Server
                 {
                     _perfSw.Restart();
                     _timeline.Tick();
-                    
+
                     _perfSw.Stop();
                     Console.WriteLine($"Elapsed: {_perfSw.Elapsed.TotalMilliseconds}");
                 }
