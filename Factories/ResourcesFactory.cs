@@ -4,7 +4,7 @@ using System.IO;
 
 namespace DVG.SkyPirates.Server.Factories
 {
-    internal class ResourcesFactory<T> : IPathFactory<T>
+    public class ResourcesFactory<T> : IPathFactory<T>
     {
         public T Create(string parameters)
         {

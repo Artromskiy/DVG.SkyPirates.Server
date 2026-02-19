@@ -1,6 +1,8 @@
-﻿using DVG.Core;
+﻿using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
+using DVG.SkyPirates.Shared.IServices;
+using System;
 
 namespace DVG.SkyPirates.Server.Services.CommandMutators
 {
@@ -8,17 +10,30 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
         ICommandMutator<SpawnSquadCommand>,
         ICommandMutator<SpawnUnitCommand>
     {
-        private int _newEntityId = 1;
+        private readonly Random _random = new();
+        private readonly IEntityRegistryService _entityRegistryService;
 
-        public Command<SpawnUnitCommand> Mutate(Command<SpawnUnitCommand> cmd) => MutateCommand(cmd);
-        public Command<SpawnSquadCommand> Mutate(Command<SpawnSquadCommand> cmd) => MutateCommand(cmd);
-
-        private Command<T> MutateCommand<T>(Command<T> cmd)
-            where T : ICommandData
+        public SpawnCommandMutator(IEntityRegistryService entityRegistryService)
         {
-            return cmd.WithEntityId(NewEntityId());
+            _entityRegistryService = entityRegistryService;
         }
 
-        private int NewEntityId() => ++_newEntityId;
+        public Command<SpawnUnitCommand> Mutate(Command<SpawnUnitCommand> cmd)
+        {
+            var syncId = _entityRegistryService.Reserve();
+            var syncIdReserve = _entityRegistryService.Reserve(10);
+            var randomSeed = _random.Next();
+            cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
+            return cmd;
+        }
+
+        public Command<SpawnSquadCommand> Mutate(Command<SpawnSquadCommand> cmd)
+        {
+            var syncId = _entityRegistryService.Reserve();
+            var syncIdReserve = _entityRegistryService.Reserve(10);
+            var randomSeed = _random.Next();
+            cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
+            return cmd;
+        }
     }
 }

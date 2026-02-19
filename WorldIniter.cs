@@ -1,6 +1,6 @@
 ﻿using Arch.Core;
 using DVG.Core;
-using DVG.SkyPirates.Shared.Components.Data;
+using DVG.SkyPirates.Shared.Components.Config;
 using DVG.SkyPirates.Shared.Entities;
 
 namespace DVG.SkyPirates.Server

@@ -1,4 +1,4 @@
-﻿using DVG.Core;
+﻿using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared;
 using DVG.SkyPirates.Shared.Commands;
@@ -70,7 +70,7 @@ namespace DVG.SkyPirates.Server
             var timeline = _container.GetInstance<ITimelineService>();
 
             var cmdData = timeline.GetIniter();
-            var cmd = new Command<LoadWorldCommand>(0, clientId, timeline.CurrentTick, cmdData);
+            var cmd = new Command<LoadWorldCommand>(clientId, timeline.CurrentTick, cmdData);
 
             sendService.SendTo(cmd, clientId);
         }
@@ -79,7 +79,7 @@ namespace DVG.SkyPirates.Server
         {
             var recieveService = _container.GetInstance<ICommandRecieveService>();
             var timeline = _container.GetInstance<ITimelineService>();
-            recieveService.InvokeCommand(new Command<SpawnSquadCommand>(0, clientId, timeline.CurrentTick, new()));
+            recieveService.InvokeCommand(new Command<SpawnSquadCommand>(clientId, timeline.CurrentTick, new()));
         }
     }
 }
