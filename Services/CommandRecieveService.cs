@@ -1,10 +1,11 @@
-﻿using DVG.Commands;
+﻿using DVG.Collections;
+using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
 using Riptide;
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace DVG.SkyPirates.Server.Services
 {
@@ -16,8 +17,7 @@ namespace DVG.SkyPirates.Server.Services
         private readonly ICommandMutatorService _commandMutator;
 
         private readonly MessageIO _messageIO;
-        private readonly Dictionary<int, IActionInvoker> _actionInvokers = new();
-        private readonly Dictionary<int, Delegate> _recievers = new();
+        private readonly GenericCollection _listeners = new();
 
         public CommandRecieveService(
             Riptide.Server server,
@@ -31,19 +31,16 @@ namespace DVG.SkyPirates.Server.Services
             _commandValidator = commandValidator;
             _commandMutator = commandMutator;
             _messageIO = new MessageIO(commandSerializer);
-            var createInvokers = new CreateInvokersAction(this);
-            CommandIds.ForEachData(ref createInvokers);
             _server.MessageReceived += OnMessageRecieved;
         }
 
         private void OnMessageRecieved(object? _, MessageReceivedEventArgs e)
         {
-            if (_actionInvokers.TryGetValue(e.MessageId, out var invoker))
-                invoker.Invoke(e.Message, e.FromConnection.Id);
+            var caller = new Caller(e.FromConnection.Id, e.Message, _messageIO, this);
+            CommandsRegistry.Call(e.MessageId, ref caller);
         }
 
         private void InvokeCommand<T>(Command<T> cmd, int clientId)
-             where T : ICommandData
         {
             if (cmd.ClientId != clientId)
                 throw new InvalidOperationException();
@@ -55,80 +52,54 @@ namespace DVG.SkyPirates.Server.Services
             InvokeCommand(cmd);
         }
 
-        public void InvokeCommand<T>(Command<T> cmd) where T : ICommandData
+        public void InvokeCommand<T>(Command<T> cmd)
         {
             cmd = _commandMutator.Mutate(cmd);
-            if (_recievers.TryGetValue(cmd.CommandId, out var deleg) &&
-                deleg is Action<Command<T>> callback)
+            if (_listeners.TryGet<Action<Command<T>>>(out var callback))
                 callback.Invoke(cmd);
         }
 
         public void RegisterReciever<T>(Action<Command<T>> reciever)
-            where T : ICommandData
         {
-            int id = CommandIds.GetId<T>();
-            if (!_recievers.TryGetValue(id, out var recievers))
-                _recievers.Add(id, reciever);
+            if (!_listeners.TryGet<Action<Command<T>>>(out var callback))
+                _listeners.Add(reciever);
             else
-                _recievers[id] = (recievers as Action<Command<T>>) + reciever;
+                _listeners.Add(callback + reciever);
         }
 
         public void UnregisterReciever<T>(Action<Command<T>> reciever)
-            where T : ICommandData
         {
-            int id = CommandIds.GetId<T>();
-            if (!_recievers.TryGetValue(id, out var recievers))
+            if (!_listeners.TryGet<Action<Command<T>>>(out var recievers))
                 return;
-            if (recievers is not Action<Command<T>> genericRecievers)
-                throw new InvalidCastException();
-            genericRecievers -= reciever;
-            if (genericRecievers == null)
-                _actionInvokers.Remove(id);
+            recievers -= reciever;
+            if (recievers == null)
+                _listeners.Remove<Action<Command<T>>>();
             else
-                _recievers[id] = genericRecievers;
+                _listeners.Add(reciever);
         }
 
-        private readonly struct CreateInvokersAction : IGenericAction<ICommandData>
+        private readonly struct Caller : IGenericAction
         {
-            private readonly CommandRecieveService _recieveService;
-
-            public CreateInvokersAction(CommandRecieveService recieveService)
-            {
-                _recieveService = recieveService;
-            }
-
-            public readonly void Invoke<T>() where T : ICommandData
-            {
-                _recieveService._actionInvokers[CommandIds.GetId<T>()] =
-                    new ActionInvoker<T>(_recieveService);
-            }
-        }
-
-        private class ActionInvoker<T> : IActionInvoker
-            where T : ICommandData
-        {
-            private readonly CommandRecieveService _recieveService;
+            private readonly int _clientId;
+            private readonly Message _message;
             private readonly MessageIO _messageIO;
+            private readonly CommandRecieveService _recieveService;
 
-            public ActionInvoker(CommandRecieveService recieveService)
+            public Caller(int clientId, Message message, MessageIO messageIO, CommandRecieveService recieveService)
             {
+                _clientId = clientId;
+                _message = message;
+                _messageIO = messageIO;
                 _recieveService = recieveService;
-                _messageIO = _recieveService._messageIO;
             }
 
-            public void Invoke(Message m, ushort clientId)
+            public void Invoke<T>()
             {
-                if (!_messageIO.RecieveMessage<T>(m, clientId, out var cmd))
-                {
+                if (!_messageIO.RecieveMessage<T>(_message, _clientId, out var command))
                     return;
-                }
-                _recieveService.InvokeCommand(cmd, clientId);
+                Debug.WriteLine(typeof(T).Name);
+                _recieveService.InvokeCommand(command, _clientId);
             }
-        }
-
-        private interface IActionInvoker
-        {
-            void Invoke(Message message, ushort clientId);
         }
     }
 }

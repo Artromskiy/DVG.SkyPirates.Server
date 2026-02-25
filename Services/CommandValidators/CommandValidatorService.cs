@@ -4,7 +4,7 @@ using DVG.SkyPirates.Shared.Ids;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DVG.SkyPirates.Server.Services
+namespace DVG.SkyPirates.Server.Services.CommandValidators
 {
     internal class CommandValidatorService : ICommandValidatorService
     {
@@ -20,7 +20,7 @@ namespace DVG.SkyPirates.Server.Services
             _validators = validators.ToArray();
         }
 
-        public bool ValidateCommand<T>(Command<T> cmd) where T : ICommandData
+        public bool ValidateCommand<T>(Command<T> cmd)
         {
             return true;
             bool isValid = true;
@@ -38,12 +38,12 @@ namespace DVG.SkyPirates.Server.Services
             return !isValid;
         }
 
-        private static bool FutureTimeCheating<T>(Command<T> cmd) where T : ICommandData
+        private static bool FutureTimeCheating<T>(Command<T> cmd)
         {
             return false;// cmd.Tick < TimeSpan.FromTicks(DateTime.UtcNow.Ticks);
         }
 
-        public bool ValidateClientId<T>(int clientId, Command<T> cmd) where T : ICommandData
+        public bool ValidateClientId<T>(int clientId, Command<T> cmd)
         {
             return !_cheatLogger.AssertCheating(clientId != cmd.ClientId, clientId, new CheatingId());
         }

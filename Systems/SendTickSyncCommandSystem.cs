@@ -3,7 +3,7 @@ using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 
-namespace DVG.SkyPirates.Server
+namespace DVG.SkyPirates.Server.Systems
 {
     public class SendTickSyncCommandSystem : IPostTickableExecutor
     {

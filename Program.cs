@@ -1,7 +1,9 @@
 ﻿using DVG.Commands;
+using DVG.Core;
 using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Shared;
 using DVG.SkyPirates.Shared.Commands;
+using DVG.SkyPirates.Shared.Data;
+using DVG.SkyPirates.Shared.IFactories;
 using DVG.SkyPirates.Shared.IServices;
 using Riptide;
 using Riptide.Utils;
@@ -18,39 +20,28 @@ namespace DVG.SkyPirates.Server
 
         private static void Main(string[] args)
         {
-            _container = new ServerContainer();
             RiptideLogger.Initialize(Console.WriteLine, true);
             Message.MaxPayloadSize = 256;
-            var server = _container.GetInstance<Riptide.Server>();
-            server.ClientDisconnected += Server_ClientDisconnected;
-            server.ClientConnected += Server_ClientConnected;
-            server.HeartbeatInterval = 1000 / Constants.TicksPerSecond;
-            server.Start(7788, 16, useMessageHandlers: false);
+            _container = new ServerContainer();
             LogIPs();
+            var server = _container.GetInstance<Riptide.Server>();
 
-            while (true)
-            {
-                server.Update();
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                {
-                    Console.WriteLine("Started");
-                    break;
-                }
-            }
+            while (!(Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)) { }
+            Console.WriteLine("Started");
 
-            _container.GetInstance<GameStartController>().Begin();
+            var worldDataLoader = _container.GetInstance<IPathFactory<WorldData>>();
+            var worldData = worldDataLoader.Create("Configs/Maps/Map1");
+            var worldDataFactory = _container.GetInstance<IWorldDataFactory>();
+            worldDataFactory.Extract(worldData);
+            server.ClientConnected += Server_ClientConnected1;
+
+            _container.GetInstance<GameStartController>().Loop();
         }
 
-        private static void Server_ClientDisconnected(object? sender, ServerDisconnectedEventArgs e)
+        private static void Server_ClientConnected1(object? sender, ServerConnectedEventArgs e)
         {
-            Console.WriteLine($"Client {e.Client} disconnected: {e.Reason}");
-        }
-
-        private static void Server_ClientConnected(object? sender, ServerConnectedEventArgs e)
-        {
-            e.Client.MaxSendAttempts = 500;
-            e.Client.TimeoutTime = 10_000;
-            e.Client.CanQualityDisconnect = true;
+            e.Client.CanQualityDisconnect = false;
+            e.Client.MaxSendAttempts = 100;
             SendSyncData(e.Client.Id);
             CreateSquad(e.Client.Id);
         }
@@ -68,18 +59,54 @@ namespace DVG.SkyPirates.Server
         {
             var sendService = _container.GetInstance<ICommandSendService>();
             var timeline = _container.GetInstance<ITimelineService>();
+            var commands = _container.GetInstance<ICommandExecutorService>();
+            var timelineTick = timeline.CurrentTick;
+            var timelineRollbackTick = timelineTick - Constants.TicksPerSecond * 3;
+            timeline.GoTo(timelineTick - Constants.TicksPerSecond * 3);
+            var worldData = _container.GetInstance<IWorldDataFactory>().Create();
+            timeline.GoTo(timelineTick);
 
-            var cmdData = timeline.GetIniter();
-            var cmd = new Command<LoadWorldCommand>(clientId, timeline.CurrentTick, cmdData);
-
+            var cmd = new Command<LoadWorldCommand>(0, timelineRollbackTick, new() { WorldData = worldData });
             sendService.SendTo(cmd, clientId);
+            var sendCommands = new SendCommandsAction(sendService, commands, timelineRollbackTick, clientId);
+            CommandsRegistry.ForEach(ref sendCommands);
         }
 
+        private readonly struct SendCommandsAction : IGenericAction
+        {
+            private readonly ICommandSendService _sendService;
+            private readonly ICommandExecutorService _commandExecutor;
+            private readonly int _tick;
+            private readonly int _clientId;
+
+            public SendCommandsAction(ICommandSendService sendService, ICommandExecutorService commandExecutor, int tick, int clientId)
+            {
+                _sendService = sendService;
+                _commandExecutor = commandExecutor;
+                _tick = tick;
+                _clientId = clientId;
+            }
+
+            public void Invoke<T>()
+            {
+                var commands = _commandExecutor.GetCommands<T>();
+                if (commands == null)
+                    return;
+                foreach (var item in commands)
+                {
+                    if (item.Key > _tick)
+                        foreach (var command in item.Value)
+                            _sendService.SendTo(command, _clientId);
+                }
+            }
+        }
+
+        // this is ok
         private static void CreateSquad(int clientId)
         {
             var recieveService = _container.GetInstance<ICommandRecieveService>();
             var timeline = _container.GetInstance<ITimelineService>();
-            recieveService.InvokeCommand(new Command<SpawnSquadCommand>(clientId, timeline.CurrentTick, new()));
+            recieveService.InvokeCommand(new Command<SpawnSquadCommand>(clientId, timeline.CurrentTick + 1, new()));
         }
     }
 }

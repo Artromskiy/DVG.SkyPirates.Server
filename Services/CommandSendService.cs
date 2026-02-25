@@ -21,7 +21,6 @@ namespace DVG.SkyPirates.Server.Services
         }
 
         public void SendTo<T>(Command<T> data, int clientId)
-            where T : ICommandData
         {
             _messages.Clear();
             _messageWriter.GetMessages(data, _messages);
@@ -32,7 +31,6 @@ namespace DVG.SkyPirates.Server.Services
         }
 
         public void SendToAll<T>(Command<T> data)
-            where T : ICommandData
         {
             _messages.Clear();
             _messageWriter.GetMessages(data, _messages);
@@ -43,7 +41,6 @@ namespace DVG.SkyPirates.Server.Services
         }
 
         public void SendToAll<T>(Command<T> data, int exceptClient)
-            where T : ICommandData
         {
             _messages.Clear();
             _messageWriter.GetMessages(data, _messages);

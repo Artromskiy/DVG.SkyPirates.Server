@@ -17,8 +17,4 @@
     <ProjectReference Include="..\Shared\SkyPirates.Shared.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Presenters\" />
-  </ItemGroup>
-
 </Project>

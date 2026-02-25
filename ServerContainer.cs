@@ -4,6 +4,7 @@ using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Server.Services;
 using DVG.SkyPirates.Server.Services.CommandMutators;
 using DVG.SkyPirates.Server.Services.CommandValidators;
+using DVG.SkyPirates.Server.Systems;
 using DVG.SkyPirates.Shared.DI;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
@@ -15,49 +16,36 @@ using System;
 
 namespace DVG.SkyPirates.Server
 {
-    internal class ServerContainer : Container
+    internal class ServerContainer : SharedContainer
     {
-        public ServerContainer() : base()
+        public ServerContainer()
         {
-            RegisterSingleton(() => new Riptide.Server(new UdpServer()));
+            RegisterSingleton(() =>
+            {
+                var server = new Riptide.Server(new UdpServer());
+                server.HeartbeatInterval = 1000 / Constants.TicksPerSecond;
+                server.Start(7788, 16, useMessageHandlers: false);
+                server.TimeoutTime = 3_000;
+                return server;
+            });
             RegisterSingleton<ICommandSerializer, CompressedJsonUTF8Serializer>();
             RegisterSingleton<ICommandSendService, CommandSendService>();
             RegisterSingleton<ICommandRecieveService, CommandRecieveService>();
             RegisterSingleton<ICheatLoggerService, CheatLoggerService>();
 
-            // Validate => Mutate => Execute
-            var commandValidators = new Type[]
-            {
-                typeof(EmptyCommandValidator)
-            };
-            RegisterSingleton<ICommandValidatorService, CommandValidatorService>();
-            Collection.Register<ICommandValidator>(commandValidators, Lifestyle.Singleton);
-
-            var commandMutators = new Type[]
-            {
-                typeof(EmptyCommandMutator),
-                typeof(SpawnCommandMutator)
-            };
-            RegisterSingleton<ICommandMutatorService, CommandMutatorService>();
-            Collection.Register<ICommandMutator>(commandMutators, Lifestyle.Singleton);
-
-            RegisterSingleton<IClientConnectionService, ClientConnectionService>();
-            RegisterSingleton<CommandsResender>();
-
             RegisterSingleton(typeof(IPathFactory<>), typeof(ResourcesFactory<>));
 
+            RegisterSingleton<CommandsResender>();
             RegisterSingleton<GameStartController>();
-            RegisterSingleton<WorldIniter>();
 
-            var preTickableExecutors = Array.Empty<Type>();
-            var postTickableExecutors = new Type[]
-            {
-                typeof(SendTickSyncCommandSystem)
-            };
-            Collection.Register<IPreTickableExecutor>(preTickableExecutors, Lifestyle.Singleton);
-            Collection.Register<IPostTickableExecutor>(postTickableExecutors, Lifestyle.Singleton);
+            // Validate => Mutate => Execute
+            RegisterSingleton<ICommandValidatorService, CommandValidatorService>();
+            RegisterSingleton<ICommandMutatorService, CommandMutatorService>();
 
-            SharedRegistration.Register(this);
+            Collection.Register<ICommandValidator>(CommandValidators, Lifestyle.Singleton);
+            Collection.Register<ICommandMutator>(CommandMutators, Lifestyle.Singleton);
+            Collection.Register<IPreTickableExecutor>(PreTickableExecutors, Lifestyle.Singleton);
+            Collection.Register<IPostTickableExecutor>(PostTickableExecutors, Lifestyle.Singleton);
 
             Verify(VerificationOption.VerifyAndDiagnose);
             Analyze(this);
@@ -68,5 +56,26 @@ namespace DVG.SkyPirates.Server
             foreach (var item in Analyzer.Analyze(container))
                 Console.WriteLine(item.Description);
         }
+
+        private static Type[] CommandValidators => new Type[]
+        {
+            //typeof(EmptyCommandValidator)
+        };
+
+        private static Type[] CommandMutators => new Type[]
+        {
+            //typeof(EmptyCommandMutator),
+            typeof(SpawnCommandMutator)
+        };
+
+        private static Type[] PreTickableExecutors => new Type[]
+        {
+
+        };
+
+        private static Type[] PostTickableExecutors => new Type[]
+        {
+            typeof(SendTickSyncCommandSystem)
+        };
     }
 }

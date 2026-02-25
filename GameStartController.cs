@@ -1,4 +1,4 @@
-﻿using DVG.SkyPirates.Shared;
+﻿using DVG.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using System;
 using System.Diagnostics;
@@ -10,46 +10,57 @@ namespace DVG.SkyPirates.Server
     {
         private readonly Riptide.Server _server;
         private readonly ITimelineService _timeline;
-        private readonly WorldIniter _worldIniter;
+        private readonly ICommandRecieveService _recieveService;
         private readonly Stopwatch _mainSw = new();
         private readonly Stopwatch _perfSw = new();
 
-        public GameStartController(Riptide.Server server, ITimelineService timeline, WorldIniter worldIniter)
+        public GameStartController(Riptide.Server server, ITimelineService timeline, ICommandRecieveService recieveService)
         {
             _server = server;
             _timeline = timeline;
-            _worldIniter = worldIniter;
+            _recieveService = recieveService;
+            var subscrive = new DirtyCommandCallback(_timeline, _recieveService);
+            CommandsRegistry.ForEach(ref subscrive);
         }
 
-        public void Begin()
+        public void Loop()
         {
-            _worldIniter.Init();
-            //Thread.Sleep(1000);
-            Loop();
-        }
-
-        private void Loop()
-        {
-            int lastFrame = 0;
-            var frameTimeInMs = (fix)1000 / Constants.TicksPerSecond;
             _mainSw.Start();
-
             while (true)
             {
-                _server.Update();
                 var ticks = _mainSw.Elapsed.Ticks;
-                int ms = (int)(ticks / 10000);
-                int tickFrame = (int)(ms / frameTimeInMs);
-                for (int i = lastFrame; i < tickFrame; i++)
+                int tickFrame = (int)(ticks * Constants.TicksPerSecond / 1000 / 10000);
+                if (_timeline.CurrentTick != tickFrame)
                 {
                     _perfSw.Restart();
-                    _timeline.Tick();
-
+                    _server.Update();
+                    _timeline.TickTo(tickFrame);
                     _perfSw.Stop();
                     Console.WriteLine($"Elapsed: {_perfSw.Elapsed.TotalMilliseconds}");
                 }
-                lastFrame = tickFrame;
+
                 Thread.Yield();
+            }
+        }
+
+        private readonly struct DirtyCommandCallback : IGenericAction
+        {
+            private readonly ITimelineService _timelineService;
+            private readonly ICommandRecieveService _commandRecieveService;
+
+            public DirtyCommandCallback(ITimelineService timelineService, ICommandRecieveService commandRecieveService)
+            {
+                _timelineService = timelineService;
+                _commandRecieveService = commandRecieveService;
+            }
+
+            public void Invoke<T>()
+            {
+                var timeline = _timelineService;
+                _commandRecieveService.RegisterReciever<T>((c) =>
+                {
+                    timeline.DirtyTick = Maths.Min(timeline.DirtyTick, c.Tick);
+                });
             }
         }
     }

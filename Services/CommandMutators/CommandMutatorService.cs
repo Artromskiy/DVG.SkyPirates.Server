@@ -3,7 +3,7 @@ using DVG.SkyPirates.Server.IServices;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace DVG.SkyPirates.Server.Services
+namespace DVG.SkyPirates.Server.Services.CommandMutators
 {
     public class CommandMutatorService : ICommandMutatorService
     {
@@ -14,7 +14,7 @@ namespace DVG.SkyPirates.Server.Services
             _mutators = mutators.ToArray();
         }
 
-        public Command<T> Mutate<T>(Command<T> cmd) where T : ICommandData
+        public Command<T> Mutate<T>(Command<T> cmd)
         {
             foreach (var item in _mutators)
                 if (item is ICommandMutator<T> concrete)

@@ -11,17 +11,17 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
         ICommandMutator<SpawnUnitCommand>
     {
         private readonly Random _random = new();
-        private readonly IEntityRegistryService _entityRegistryService;
+        private readonly IEntityRegistry _entityRegistry;
 
-        public SpawnCommandMutator(IEntityRegistryService entityRegistryService)
+        public SpawnCommandMutator(IEntityRegistry entityRegistry)
         {
-            _entityRegistryService = entityRegistryService;
+            _entityRegistry = entityRegistry;
         }
 
         public Command<SpawnUnitCommand> Mutate(Command<SpawnUnitCommand> cmd)
         {
-            var syncId = _entityRegistryService.Reserve();
-            var syncIdReserve = _entityRegistryService.Reserve(10);
+            var syncId = _entityRegistry.Reserve();
+            var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
             cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
             return cmd;
@@ -29,8 +29,8 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
 
         public Command<SpawnSquadCommand> Mutate(Command<SpawnSquadCommand> cmd)
         {
-            var syncId = _entityRegistryService.Reserve();
-            var syncIdReserve = _entityRegistryService.Reserve(10);
+            var syncId = _entityRegistry.Reserve();
+            var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
             cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
             return cmd;
