@@ -29,8 +29,8 @@ namespace DVG.SkyPirates.Server
                 return server;
             });
             RegisterSingleton<ICommandSerializer, CompressedJsonUTF8Serializer>();
-            RegisterSingleton<ICommandSendService, CommandSendService>();
-            RegisterSingleton<ICommandRecieveService, CommandRecieveService>();
+            RegisterSingleton<ICommandSender, CommandSender>();
+            RegisterSingleton<ICommandReciever, CommandReciever>();
             RegisterSingleton<ICheatLoggerService, CheatLoggerService>();
 
             RegisterSingleton(typeof(IPathFactory<>), typeof(ResourcesFactory<>));

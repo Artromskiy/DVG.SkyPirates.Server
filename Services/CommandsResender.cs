@@ -7,7 +7,7 @@ namespace DVG.SkyPirates.Server.Services
 {
     internal class CommandsResender
     {
-        public CommandsResender(ICommandRecieveService commandRecieveService, ICommandSendService commandSendService)
+        public CommandsResender(ICommandReciever commandRecieveService, ICommandSender commandSendService)
         {
             var action = new RegisterResendAction(commandRecieveService, commandSendService);
             CommandsRegistry.ForEach(ref action);
@@ -15,10 +15,10 @@ namespace DVG.SkyPirates.Server.Services
 
         private readonly struct RegisterResendAction : IGenericAction
         {
-            private readonly ICommandRecieveService _commandRecieveService;
-            private readonly ICommandSendService _commandSendService;
+            private readonly ICommandReciever _commandRecieveService;
+            private readonly ICommandSender _commandSendService;
 
-            public RegisterResendAction(ICommandRecieveService commandRecieveService, ICommandSendService commandSendService)
+            public RegisterResendAction(ICommandReciever commandRecieveService, ICommandSender commandSendService)
             {
                 _commandRecieveService = commandRecieveService;
                 _commandSendService = commandSendService;

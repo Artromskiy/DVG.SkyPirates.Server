@@ -10,11 +10,11 @@ namespace DVG.SkyPirates.Server
     {
         private readonly Riptide.Server _server;
         private readonly ITimelineService _timeline;
-        private readonly ICommandRecieveService _recieveService;
+        private readonly ICommandReciever _recieveService;
         private readonly Stopwatch _mainSw = new();
         private readonly Stopwatch _perfSw = new();
 
-        public GameStartController(Riptide.Server server, ITimelineService timeline, ICommandRecieveService recieveService)
+        public GameStartController(Riptide.Server server, ITimelineService timeline, ICommandReciever recieveService)
         {
             _server = server;
             _timeline = timeline;
@@ -46,9 +46,9 @@ namespace DVG.SkyPirates.Server
         private readonly struct DirtyCommandCallback : IGenericAction
         {
             private readonly ITimelineService _timelineService;
-            private readonly ICommandRecieveService _commandRecieveService;
+            private readonly ICommandReciever _commandRecieveService;
 
-            public DirtyCommandCallback(ITimelineService timelineService, ICommandRecieveService commandRecieveService)
+            public DirtyCommandCallback(ITimelineService timelineService, ICommandReciever commandRecieveService)
             {
                 _timelineService = timelineService;
                 _commandRecieveService = commandRecieveService;

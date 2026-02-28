@@ -1,6 +1,7 @@
 ﻿using DVG.Collections;
 using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
+using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
 using Riptide;
@@ -9,27 +10,30 @@ using System.Diagnostics;
 
 namespace DVG.SkyPirates.Server.Services
 {
-    internal class CommandRecieveService : ICommandRecieveService
+    internal class CommandReciever : ICommandReciever
     {
         private readonly Riptide.Server _server;
         private readonly ICheatLoggerService _cheatLogger;
         private readonly ICommandValidatorService _commandValidator;
         private readonly ICommandMutatorService _commandMutator;
+        private readonly ICommandSender _commandSender;
 
         private readonly MessageIO _messageIO;
         private readonly GenericCollection _listeners = new();
 
-        public CommandRecieveService(
+        public CommandReciever(
             Riptide.Server server,
             ICommandSerializer commandSerializer,
             ICheatLoggerService cheatLogger,
             ICommandValidatorService commandValidator,
-            ICommandMutatorService commandMutator)
+            ICommandMutatorService commandMutator,
+            ICommandSender commandSender)
         {
             _server = server;
             _cheatLogger = cheatLogger;
             _commandValidator = commandValidator;
             _commandMutator = commandMutator;
+            _commandSender = commandSender;
             _messageIO = new MessageIO(commandSerializer);
             _server.MessageReceived += OnMessageRecieved;
         }
@@ -40,23 +44,40 @@ namespace DVG.SkyPirates.Server.Services
             CommandsRegistry.Call(e.MessageId, ref caller);
         }
 
-        private void InvokeCommand<T>(Command<T> cmd, int clientId)
+        private void InvokeCommand<T>(Command<T> command, int clientId)
         {
-            if (cmd.ClientId != clientId)
-                throw new InvalidOperationException();
+            if (command.ClientId != clientId)
+            {
+                // dirty cheater
+            }
 
-            cmd = cmd.WithClientId(clientId);
-            if (!_commandValidator.ValidateCommand(cmd))
-                throw new InvalidOperationException();
+            command = command.WithClientId(clientId);
 
-            InvokeCommand(cmd);
+            if (!_commandValidator.ValidateCommand(command))
+            {
+                if (CommandInfos.ClientPredicted<T>())
+                {
+                    var invalidate = new InvalidateCommand()
+                    {
+                        CommandId = CommandsRegistry.GetId<T>(),
+                    };
+                    _commandSender.SendTo<InvalidateCommand>(new(clientId, command.Tick, invalidate), clientId);
+                }
+                else
+                {
+                    // do nothing
+                }
+                return;
+            }
+
+            InvokeCommand(command);
         }
 
-        public void InvokeCommand<T>(Command<T> cmd)
+        public void InvokeCommand<T>(Command<T> command)
         {
-            cmd = _commandMutator.Mutate(cmd);
+            command = _commandMutator.Mutate(command);
             if (_listeners.TryGet<Action<Command<T>>>(out var callback))
-                callback.Invoke(cmd);
+                callback.Invoke(command);
         }
 
         public void RegisterReciever<T>(Action<Command<T>> reciever)
@@ -83,9 +104,9 @@ namespace DVG.SkyPirates.Server.Services
             private readonly int _clientId;
             private readonly Message _message;
             private readonly MessageIO _messageIO;
-            private readonly CommandRecieveService _recieveService;
+            private readonly CommandReciever _recieveService;
 
-            public Caller(int clientId, Message message, MessageIO messageIO, CommandRecieveService recieveService)
+            public Caller(int clientId, Message message, MessageIO messageIO, CommandReciever recieveService)
             {
                 _clientId = clientId;
                 _message = message;

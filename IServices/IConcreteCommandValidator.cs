@@ -6,11 +6,11 @@ namespace DVG.SkyPirates.Server.IServices
 
     public interface IConcreteCommandValidator<T> : ICommandValidator
     {
-        bool Validate(Command<T> cmd);
+        bool IsValid(Command<T> cmd);
     }
 
     public interface IGeneralCommandValidator : ICommandValidator
     {
-        bool Validate<T>(Command<T> cmd);
+        bool IsValid<T>(Command<T> cmd);
     }
 }

@@ -7,14 +7,14 @@ using System.Collections.Generic;
 
 namespace DVG.SkyPirates.Server.Services
 {
-    internal class CommandSendService : ICommandSendService
+    internal class CommandSender : ICommandSender
     {
         private readonly Riptide.Server _server;
 
         private readonly MessageIO _messageWriter;
         private readonly List<Message> _messages = new();
 
-        public CommandSendService(Riptide.Server server, ICommandSerializer commandSerializer)
+        public CommandSender(Riptide.Server server, ICommandSerializer commandSerializer)
         {
             _server = server;
             _messageWriter = new MessageIO(commandSerializer);

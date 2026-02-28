@@ -7,9 +7,9 @@ namespace DVG.SkyPirates.Server.Systems
 {
     public class SendTickSyncCommandSystem : IPostTickableExecutor
     {
-        private readonly ICommandSendService _commandSendService;
+        private readonly ICommandSender _commandSendService;
 
-        public SendTickSyncCommandSystem(ICommandSendService commandSendService)
+        public SendTickSyncCommandSystem(ICommandSender commandSendService)
         {
             _commandSendService = commandSendService;
         }

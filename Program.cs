@@ -57,7 +57,7 @@ namespace DVG.SkyPirates.Server
 
         private static void SendSyncData(int clientId)
         {
-            var sendService = _container.GetInstance<ICommandSendService>();
+            var sendService = _container.GetInstance<ICommandSender>();
             var timeline = _container.GetInstance<ITimelineService>();
             var commands = _container.GetInstance<ICommandExecutorService>();
             var timelineTick = timeline.CurrentTick;
@@ -74,12 +74,12 @@ namespace DVG.SkyPirates.Server
 
         private readonly struct SendCommandsAction : IGenericAction
         {
-            private readonly ICommandSendService _sendService;
+            private readonly ICommandSender _sendService;
             private readonly ICommandExecutorService _commandExecutor;
             private readonly int _tick;
             private readonly int _clientId;
 
-            public SendCommandsAction(ICommandSendService sendService, ICommandExecutorService commandExecutor, int tick, int clientId)
+            public SendCommandsAction(ICommandSender sendService, ICommandExecutorService commandExecutor, int tick, int clientId)
             {
                 _sendService = sendService;
                 _commandExecutor = commandExecutor;
@@ -101,10 +101,9 @@ namespace DVG.SkyPirates.Server
             }
         }
 
-        // this is ok
         private static void CreateSquad(int clientId)
         {
-            var recieveService = _container.GetInstance<ICommandRecieveService>();
+            var recieveService = _container.GetInstance<ICommandReciever>();
             var timeline = _container.GetInstance<ITimelineService>();
             recieveService.InvokeCommand(new Command<SpawnSquadCommand>(clientId, timeline.CurrentTick + 1, new()));
         }
