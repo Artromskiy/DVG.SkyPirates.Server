@@ -1,6 +1,5 @@
 ﻿using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 
 namespace DVG.SkyPirates.Server.Services
@@ -31,7 +30,7 @@ namespace DVG.SkyPirates.Server.Services
 
             private void Send<T>(Command<T> cmd)
             {
-                if (CommandInfos.ClientPredicted<T>())
+                if (CommandsRegistry.IsPredicted<T>())
                 {
                     _commandSendService.SendToAll(cmd, cmd.ClientId);
                 }

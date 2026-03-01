@@ -14,7 +14,7 @@ namespace DVG.SkyPirates.Server.Services.CommandValidators
             _validators = validators.ToArray();
         }
 
-        public bool ValidateCommand<T>(Command<T> cmd)
+        public bool IsValid<T>(Command<T> cmd)
         {
             bool isValid = true;
 
@@ -26,7 +26,7 @@ namespace DVG.SkyPirates.Server.Services.CommandValidators
                     isValid &= general.IsValid(cmd);
             }
 
-            return !isValid;
+            return isValid;
         }
     }
 }

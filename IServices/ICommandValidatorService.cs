@@ -4,6 +4,6 @@ namespace DVG.SkyPirates.Server.IServices
 {
     public interface ICommandValidatorService
     {
-        bool ValidateCommand<T>(Command<T> cmd);
+        bool IsValid<T>(Command<T> cmd);
     }
 }

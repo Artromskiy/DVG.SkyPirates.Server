@@ -53,9 +53,9 @@ namespace DVG.SkyPirates.Server.Services
 
             command = command.WithClientId(clientId);
 
-            if (!_commandValidator.ValidateCommand(command))
+            if (!_commandValidator.IsValid(command))
             {
-                if (CommandInfos.ClientPredicted<T>())
+                if (CommandsRegistry.IsPredicted<T>())
                 {
                     var invalidate = new InvalidateCommand()
                     {

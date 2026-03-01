@@ -1,6 +1,6 @@
 ﻿using DVG.Commands;
-using DVG.SkyPirates.Client.IServices;
 using DVG.SkyPirates.Server.IServices;
+using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 
 namespace DVG.SkyPirates.Server.Services.CommandValidators
 {

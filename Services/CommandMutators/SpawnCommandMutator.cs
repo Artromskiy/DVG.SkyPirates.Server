@@ -23,7 +23,12 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
             var syncId = _entityRegistry.Reserve();
             var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
-            cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
+            cmd.Data.CreationData = new()
+            {
+                SyncId = syncId,
+                SyncIdReserve = syncIdReserve,
+                RandomSeed = randomSeed,
+            };
             return cmd;
         }
 
@@ -32,7 +37,12 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
             var syncId = _entityRegistry.Reserve();
             var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
-            cmd.Data.CreationData = new(syncId, syncIdReserve, randomSeed);
+            cmd.Data.CreationData = new()
+            {
+                SyncId = syncId,
+                SyncIdReserve = syncIdReserve,
+                RandomSeed = randomSeed,
+            };
             return cmd;
         }
     }

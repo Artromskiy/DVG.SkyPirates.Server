@@ -3,8 +3,8 @@ using DVG.Core;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.Data;
-using DVG.SkyPirates.Shared.IFactories;
 using DVG.SkyPirates.Shared.IServices;
+using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using Riptide;
 using Riptide.Utils;
 using SimpleInjector;
@@ -30,15 +30,17 @@ namespace DVG.SkyPirates.Server
             Console.WriteLine("Started");
 
             var worldDataLoader = _container.GetInstance<IPathFactory<WorldData>>();
+            var history = _container.GetInstance<IHistorySystem>();
             var worldData = worldDataLoader.Create("Configs/Maps/Map1");
-            var worldDataFactory = _container.GetInstance<IWorldDataFactory>();
-            worldDataFactory.Extract(worldData);
-            server.ClientConnected += Server_ClientConnected1;
+            history.ApplySnapshot(worldData);
+            history.Save(0);
+            history.Save(1);
+            server.ClientConnected += ClientConnected;
 
             _container.GetInstance<GameStartController>().Loop();
         }
 
-        private static void Server_ClientConnected1(object? sender, ServerConnectedEventArgs e)
+        private static void ClientConnected(object? sender, ServerConnectedEventArgs e)
         {
             e.Client.CanQualityDisconnect = false;
             e.Client.MaxSendAttempts = 100;
@@ -59,12 +61,11 @@ namespace DVG.SkyPirates.Server
         {
             var sendService = _container.GetInstance<ICommandSender>();
             var timeline = _container.GetInstance<ITimelineService>();
+            var history = _container.GetInstance<IHistorySystem>();
             var commands = _container.GetInstance<ICommandExecutorService>();
             var timelineTick = timeline.CurrentTick;
-            var timelineRollbackTick = timelineTick - Constants.TicksPerSecond * 3;
-            timeline.GoTo(timelineTick - Constants.TicksPerSecond * 3);
-            var worldData = _container.GetInstance<IWorldDataFactory>().Create();
-            timeline.GoTo(timelineTick);
+            var timelineRollbackTick = timelineTick - Constants.ValidTicksCount;
+            var worldData = history.GetSnapshot(timelineRollbackTick);
 
             var cmd = new Command<LoadWorldCommand>(0, timelineRollbackTick, new() { WorldData = worldData });
             sendService.SendTo(cmd, clientId);
