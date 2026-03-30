@@ -17,4 +17,8 @@
     <ProjectReference Include="..\Shared\SkyPirates.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="TimelineDebug\" />
+  </ItemGroup>
+
 </Project>

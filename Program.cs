@@ -33,8 +33,7 @@ namespace DVG.SkyPirates.Server
             var history = _container.GetInstance<IHistorySystem>();
             var worldData = worldDataLoader.Create("Configs/Maps/Map1");
             history.ApplySnapshot(worldData);
-            history.Save(0);
-            history.Save(1);
+            history.SaveBaseline();
             server.ClientConnected += ClientConnected;
 
             _container.GetInstance<GameStartController>().Loop();
@@ -43,7 +42,6 @@ namespace DVG.SkyPirates.Server
         private static void ClientConnected(object? sender, ServerConnectedEventArgs e)
         {
             e.Client.CanQualityDisconnect = false;
-            e.Client.MaxSendAttempts = 100;
             SendSyncData(e.Client.Id);
             CreateSquad(e.Client.Id);
         }

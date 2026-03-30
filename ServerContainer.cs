@@ -8,7 +8,6 @@ using DVG.SkyPirates.Shared.DI;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using DVG.SkyPirates.Shared.Services;
-using DVG.SkyPirates.Shared.Services.CommandSerializers;
 using Riptide.Transports.Udp;
 using SimpleInjector;
 using SimpleInjector.Diagnostics;
@@ -23,13 +22,12 @@ namespace DVG.SkyPirates.Server
             RegisterSingleton(() =>
             {
                 var server = new Riptide.Server(new UdpServer());
-                server.HeartbeatInterval = 1000 / Constants.TicksPerSecond;
                 server.Start(7788, 16, useMessageHandlers: false);
-                server.TimeoutTime = 3_000;
+                server.HeartbeatInterval = Constants.TickDurationMs;
+                server.TimeoutTime = Constants.MaxHistoryDurationMs;
                 return server;
             });
 
-            RegisterSingleton<ICommandSerializer, CompressedJsonUTF8Serializer>();
             RegisterSingleton<ICommandSender, CommandSender>();
             RegisterSingleton<ICommandReciever, CommandReciever>();
             RegisterSingleton<ICheatLoggerService, CheatLoggerService>();
@@ -81,12 +79,13 @@ namespace DVG.SkyPirates.Server
         private static Type[] PostTickables => new Type[]
         {
             typeof(SendTickSyncCommandService),
-            typeof(HashedTimelineSaver),
+            typeof(TimelineWriter),
+            typeof(TimelineSaver),
         };
 
         private readonly Type[] InTickables = new Type[]
         {
-            typeof(IHashSumService)
+            //typeof(IHashSumService)
         };
     }
 }

@@ -1,6 +1,5 @@
 ﻿using DVG.Commands;
 using DVG.SkyPirates.Server.IServices;
-using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
 using Riptide;
 using System.Collections.Generic;
@@ -14,10 +13,10 @@ namespace DVG.SkyPirates.Server.Services
         private readonly MessageIO _messageWriter;
         private readonly List<Message> _messages = new();
 
-        public CommandSender(Riptide.Server server, ICommandSerializer commandSerializer)
+        public CommandSender(Riptide.Server server)
         {
             _server = server;
-            _messageWriter = new MessageIO(commandSerializer);
+            _messageWriter = new MessageIO();
         }
 
         public void SendTo<T>(Command<T> data, int clientId)

@@ -6,7 +6,6 @@ using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
 using Riptide;
 using System;
-using System.Diagnostics;
 
 namespace DVG.SkyPirates.Server.Services
 {
@@ -23,7 +22,6 @@ namespace DVG.SkyPirates.Server.Services
 
         public CommandReciever(
             Riptide.Server server,
-            ICommandSerializer commandSerializer,
             ICheatLoggerService cheatLogger,
             ICommandValidatorService commandValidator,
             ICommandMutatorService commandMutator,
@@ -34,7 +32,7 @@ namespace DVG.SkyPirates.Server.Services
             _commandValidator = commandValidator;
             _commandMutator = commandMutator;
             _commandSender = commandSender;
-            _messageIO = new MessageIO(commandSerializer);
+            _messageIO = new MessageIO();
             _server.MessageReceived += OnMessageRecieved;
         }
 
@@ -118,7 +116,6 @@ namespace DVG.SkyPirates.Server.Services
             {
                 if (!_messageIO.RecieveMessage<T>(_message, _clientId, out var command))
                     return;
-                Debug.WriteLine(typeof(T).Name);
                 _recieveService.InvokeCommand(command, _clientId);
             }
         }
