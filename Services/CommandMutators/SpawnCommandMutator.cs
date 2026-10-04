@@ -1,4 +1,4 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
@@ -23,13 +23,14 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
             var syncId = _entityRegistry.Reserve();
             var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
-            cmd.Data.CreationData = new()
+            var payload = cmd.Payload;
+            payload.CreationData = new()
             {
                 SyncId = syncId,
                 SyncIdReserve = syncIdReserve,
                 RandomSeed = randomSeed,
             };
-            return cmd;
+            return new Command<SpawnUnitCommand>(cmd.Header, payload);
         }
 
         public Command<SpawnSquadCommand> Mutate(Command<SpawnSquadCommand> cmd)
@@ -37,13 +38,14 @@ namespace DVG.SkyPirates.Server.Services.CommandMutators
             var syncId = _entityRegistry.Reserve();
             var syncIdReserve = _entityRegistry.Reserve(10);
             var randomSeed = _random.Next();
-            cmd.Data.CreationData = new()
+            var payload = cmd.Payload;
+            payload.CreationData = new()
             {
                 SyncId = syncId,
                 SyncIdReserve = syncIdReserve,
                 RandomSeed = randomSeed,
             };
-            return cmd;
+            return new Command<SpawnSquadCommand>(cmd.Header, payload);
         }
     }
 }

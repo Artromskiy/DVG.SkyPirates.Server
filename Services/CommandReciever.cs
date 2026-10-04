@@ -1,11 +1,13 @@
 ﻿using DVG.Collections;
-using DVG.Commands;
+using Delta.Netcode;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
 using Riptide;
 using System;
+using CommandsRegistry = DVG.Commands.CommandsRegistry;
+using IGenericAction = DVG.Commands.IGenericAction;
 
 namespace DVG.SkyPirates.Server.Services
 {
@@ -44,22 +46,22 @@ namespace DVG.SkyPirates.Server.Services
 
         private void InvokeCommand<T>(Command<T> command, int clientId)
         {
-            if (command.ClientId != clientId)
+            if (SkyPiratesCommand.GetClientId(command) != clientId)
             {
                 // dirty cheater
             }
 
-            command = command.WithClientId(clientId);
+            command = SkyPiratesCommand.WithClientId(command, clientId);
 
             if (!_commandValidator.IsValid(command))
             {
-                if (CommandsRegistry.IsPredicted<T>())
+                if (GeneratedCommands.GetRegistration<T>().IsPredicted)
                 {
                     var invalidate = new InvalidateCommand()
                     {
-                        CommandId = CommandsRegistry.GetId<T>(),
+                        CommandId = checked((int)GeneratedCommands.GetRegistration<T>().Id),
                     };
-                    _commandSender.SendTo<InvalidateCommand>(new(clientId, command.Tick, invalidate), clientId);
+                    _commandSender.SendTo<InvalidateCommand>(SkyPiratesCommand.Create(clientId, SkyPiratesCommand.GetTick(command), invalidate), clientId);
                 }
                 else
                 {

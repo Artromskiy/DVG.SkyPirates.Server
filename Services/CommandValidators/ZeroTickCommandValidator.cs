@@ -1,4 +1,4 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using DVG.SkyPirates.Server.IServices;
 
 namespace DVG.SkyPirates.Server.Services.CommandValidators
@@ -7,7 +7,7 @@ namespace DVG.SkyPirates.Server.Services.CommandValidators
     {
         public bool IsValid<T>(Command<T> cmd)
         {
-            return cmd.Tick > 0;
+            return SkyPiratesCommand.GetTick(cmd) > 0;
         }
     }
 }

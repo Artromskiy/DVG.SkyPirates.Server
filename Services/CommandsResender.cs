@@ -1,6 +1,8 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.IServices;
+using CommandsRegistry = DVG.Commands.CommandsRegistry;
+using IGenericAction = DVG.Commands.IGenericAction;
 
 namespace DVG.SkyPirates.Server.Services
 {
@@ -30,9 +32,9 @@ namespace DVG.SkyPirates.Server.Services
 
             private void Send<T>(Command<T> cmd)
             {
-                if (CommandsRegistry.IsPredicted<T>())
+                if (GeneratedCommands.GetRegistration<T>().IsPredicted)
                 {
-                    _commandSendService.SendToAll(cmd, cmd.ClientId);
+                    _commandSendService.SendToAll(cmd, SkyPiratesCommand.GetClientId(cmd));
                 }
                 else
                 {

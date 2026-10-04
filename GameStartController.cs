@@ -1,10 +1,12 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using Delta;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using System;
 using System.Diagnostics;
 using System.Threading;
+using CommandsRegistry = DVG.Commands.CommandsRegistry;
+using IGenericAction = DVG.Commands.IGenericAction;
 
 namespace DVG.SkyPirates.Server
 {
@@ -68,7 +70,7 @@ namespace DVG.SkyPirates.Server
                 var timeline = _timelineService;
                 _commandRecieveService.RegisterReciever<T>((c) =>
                 {
-                    timeline.DirtyTick = Maths.Min(timeline.DirtyTick, c.Tick);
+                    timeline.DirtyTick = Maths.Min(timeline.DirtyTick, SkyPiratesCommand.GetTick(c));
                 });
             }
         }

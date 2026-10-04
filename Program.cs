@@ -1,4 +1,4 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using DVG.Core;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
@@ -11,6 +11,8 @@ using SimpleInjector;
 using System;
 using System.Net;
 using System.Net.Sockets;
+using CommandsRegistry = DVG.Commands.CommandsRegistry;
+using IGenericAction = DVG.Commands.IGenericAction;
 
 namespace DVG.SkyPirates.Server
 {
@@ -65,7 +67,7 @@ namespace DVG.SkyPirates.Server
             var timelineRollbackTick = timelineTick - Constants.ValidTicksCount;
             var worldData = history.GetSnapshot(timelineRollbackTick);
 
-            var cmd = new Command<LoadWorldCommand>(0, timelineRollbackTick, new() { WorldData = worldData });
+            var cmd = SkyPiratesCommand.Create(0, timelineRollbackTick, new LoadWorldCommand { WorldData = worldData });
             sendService.SendTo(cmd, clientId);
             var sendCommands = new SendCommandsAction(sendService, commands, timelineRollbackTick, clientId);
             CommandsRegistry.ForEach(ref sendCommands);
@@ -104,7 +106,7 @@ namespace DVG.SkyPirates.Server
         {
             var recieveService = _container.GetInstance<ICommandReciever>();
             var timeline = _container.GetInstance<ITimelineService>();
-            recieveService.InvokeCommand(new Command<SpawnSquadCommand>(clientId, timeline.CurrentTick + 1, new()));
+            recieveService.InvokeCommand(SkyPiratesCommand.Create(clientId, timeline.CurrentTick + 1, new SpawnSquadCommand()));
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using DVG.Commands;
+﻿using Delta.Netcode;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
@@ -16,7 +16,7 @@ namespace DVG.SkyPirates.Server.Services
 
         public void Tick(int tick)
         {
-            _commandSendService.SendToAll(new Command<TickSyncCommand>(0, tick, default));
+            _commandSendService.SendToAll(SkyPiratesCommand.Create(0, tick, default(TickSyncCommand)));
         }
     }
 }
