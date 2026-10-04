@@ -37,7 +37,7 @@ namespace DVG.SkyPirates.Server.Services
         private object GetObj()
         {
             var snaphsots = _writer.GetSnapshots();
-            return (snaphsots, _session.Session.Host.CaptureSnapshot());
+            return (snaphsots, _session.Session.CaptureSnapshot());
         }
 
         private static void Save(string path, object obj)
