@@ -12,7 +12,7 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using CommandsRegistry = DVG.Commands.CommandsRegistry;
-using IGenericAction = DVG.Commands.IGenericAction;
+using IGenericAction = DVG.IGenericAction;
 
 namespace DVG.SkyPirates.Server
 {

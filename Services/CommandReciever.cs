@@ -1,13 +1,13 @@
 ﻿using DVG.Collections;
 using Delta.Netcode;
-using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.Services;
+using DVG.SkyPirates.Server.IServices;
 using Riptide;
 using System;
 using CommandsRegistry = DVG.Commands.CommandsRegistry;
-using IGenericAction = DVG.Commands.IGenericAction;
+using IGenericAction = DVG.IGenericAction;
 
 namespace DVG.SkyPirates.Server.Services
 {
@@ -15,8 +15,7 @@ namespace DVG.SkyPirates.Server.Services
     {
         private readonly Riptide.Server _server;
         private readonly ICheatLoggerService _cheatLogger;
-        private readonly ICommandValidatorService _commandValidator;
-        private readonly ICommandMutatorService _commandMutator;
+        private readonly ICommandAcceptanceService _commandAcceptance;
         private readonly ICommandSender _commandSender;
 
         private readonly MessageIO _messageIO;
@@ -25,14 +24,12 @@ namespace DVG.SkyPirates.Server.Services
         public CommandReciever(
             Riptide.Server server,
             ICheatLoggerService cheatLogger,
-            ICommandValidatorService commandValidator,
-            ICommandMutatorService commandMutator,
+            ICommandAcceptanceService commandAcceptance,
             ICommandSender commandSender)
         {
             _server = server;
             _cheatLogger = cheatLogger;
-            _commandValidator = commandValidator;
-            _commandMutator = commandMutator;
+            _commandAcceptance = commandAcceptance;
             _commandSender = commandSender;
             _messageIO = new MessageIO();
             _server.MessageReceived += OnMessageRecieved;
@@ -53,7 +50,7 @@ namespace DVG.SkyPirates.Server.Services
 
             command = SkyPiratesCommand.WithClientId(command, clientId);
 
-            if (!_commandValidator.IsValid(command))
+            if (!_commandAcceptance.TryAccept(in command, out var accepted))
             {
                 if (GeneratedCommands.GetRegistration<T>().IsPredicted)
                 {
@@ -70,12 +67,11 @@ namespace DVG.SkyPirates.Server.Services
                 return;
             }
 
-            InvokeCommand(command);
+            InvokeCommand(accepted);
         }
 
         public void InvokeCommand<T>(Command<T> command)
         {
-            command = _commandMutator.Mutate(command);
             if (_listeners.TryGet<Action<Command<T>>>(out var callback))
                 callback.Invoke(command);
         }

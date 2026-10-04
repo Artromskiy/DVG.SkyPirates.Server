@@ -2,8 +2,6 @@
 using DVG.SkyPirates.Server.Factories;
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Server.Services;
-using DVG.SkyPirates.Server.Services.CommandMutators;
-using DVG.SkyPirates.Server.Services.CommandValidators;
 using DVG.SkyPirates.Shared.DI;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
@@ -38,12 +36,6 @@ namespace DVG.SkyPirates.Server
             RegisterSingleton<GameStartController>();
             RegisterSingleton<IHashSumService, HashSumService>();
 
-            // Validate => Mutate => Execute
-            RegisterSingleton<ICommandValidatorService, CommandValidatorService>();
-            RegisterSingleton<ICommandMutatorService, CommandMutatorService>();
-
-            Collection.Register<ICommandValidator>(CommandValidators, Lifestyle.Singleton);
-            Collection.Register<ICommandMutator>(CommandMutators, Lifestyle.Singleton);
             Collection.Register<IPreTickable>(PreTickables, Lifestyle.Singleton);
             Collection.Register<IPostTickable>(PostTickables, Lifestyle.Singleton);
             Collection.Register<IInTickable>(InTickables, Lifestyle.Singleton);
@@ -57,19 +49,6 @@ namespace DVG.SkyPirates.Server
             foreach (var item in Analyzer.Analyze(container))
                 Console.WriteLine(item.Description);
         }
-
-        private static Type[] CommandValidators => new Type[]
-        {
-            typeof(LateCommandValidator),
-            typeof(FutureCommandValidator),
-            typeof(ZeroTickCommandValidator)
-        };
-
-        private static Type[] CommandMutators => new Type[]
-        {
-            //typeof(EmptyCommandMutator),
-            typeof(SpawnCommandMutator)
-        };
 
         private static Type[] PreTickables => new Type[]
         {

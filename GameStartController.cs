@@ -1,12 +1,13 @@
 ﻿using Delta.Netcode;
 using Delta;
+using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using System;
 using System.Diagnostics;
 using System.Threading;
 using CommandsRegistry = DVG.Commands.CommandsRegistry;
-using IGenericAction = DVG.Commands.IGenericAction;
+using IGenericAction = DVG.IGenericAction;
 
 namespace DVG.SkyPirates.Server
 {

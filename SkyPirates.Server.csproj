@@ -9,13 +9,13 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="DeltaNetcode" Version="0.0.2" />
+    <PackageReference Include="DeltaNetcode" Version="0.0.3" />
     <PackageReference Include="NetCoreServer" Version="8.0.7" />
     <PackageReference Include="RiptideNetworking.Riptide" Version="2.2.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Shared\SkyPirates.Shared.csproj" />
+    <ProjectReference Include="..\SkyPirates.Unity\Assets\Scripts\SkyPirates\Shared\SkyPirates.Shared.csproj" />
   </ItemGroup>
 
   <ItemGroup>
