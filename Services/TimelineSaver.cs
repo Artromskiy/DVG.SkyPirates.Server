@@ -2,6 +2,7 @@
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using DVG.SkyPirates.Shared.Services;
 using DVG.SkyPirates.Shared.Tools.Json;
+using DVG.SkyPirates.Shared.Services.Netcode;
 using System;
 using System.Buffers;
 using System.IO;
@@ -11,12 +12,12 @@ namespace DVG.SkyPirates.Server.Services
     public class TimelineSaver : ITickableExecutor
     {
         private readonly TimelineWriter _writer;
-        private readonly ICommandExecutorService _commands;
+        private readonly SkyPiratesSessionProvider _session;
 
-        public TimelineSaver(TimelineWriter writer, ICommandExecutorService commands)
+        public TimelineSaver(TimelineWriter writer, SkyPiratesSessionProvider session)
         {
             _writer = writer;
-            _commands = commands;
+            _session = session;
         }
 
         public void Tick(int tick)
@@ -36,8 +37,7 @@ namespace DVG.SkyPirates.Server.Services
         private object GetObj()
         {
             var snaphsots = _writer.GetSnapshots();
-            var commands = _commands.GetCommands();
-            return (snaphsots, commands);
+            return (snaphsots, _session.Session.Host.CaptureSnapshot());
         }
 
         private static void Save(string path, object obj)

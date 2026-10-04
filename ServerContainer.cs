@@ -15,7 +15,7 @@ namespace DVG.SkyPirates.Server
 {
     internal class ServerContainer : SharedContainer
     {
-        public ServerContainer()
+        public ServerContainer() : base(Delta.Netcode.SessionMode.Server)
         {
             RegisterSingleton(() =>
             {
@@ -26,13 +26,10 @@ namespace DVG.SkyPirates.Server
                 return server;
             });
 
-            RegisterSingleton<ICommandSender, CommandSender>();
-            RegisterSingleton<ICommandReciever, CommandReciever>();
             RegisterSingleton<ICheatLoggerService, CheatLoggerService>();
             RegisterSingleton<ITickCounterService, TickCounterService>();
             RegisterSingleton(typeof(IPathFactory<>), typeof(ResourcesFactory<>));
 
-            RegisterSingleton<CommandsResender>();
             RegisterSingleton<GameStartController>();
             RegisterSingleton<IHashSumService, HashSumService>();
 

@@ -2,21 +2,22 @@
 using DVG.SkyPirates.Server.IServices;
 using DVG.SkyPirates.Shared.Commands;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
+using DVG.SkyPirates.Shared.Services.Netcode;
 
 namespace DVG.SkyPirates.Server.Services
 {
     public class SendTickSyncCommandService : ITickableExecutor
     {
-        private readonly ICommandSender _commandSendService;
+        private readonly SkyPiratesSessionProvider _session;
 
-        public SendTickSyncCommandService(ICommandSender commandSendService)
+        public SendTickSyncCommandService(SkyPiratesSessionProvider session)
         {
-            _commandSendService = commandSendService;
+            _session = session;
         }
 
         public void Tick(int tick)
         {
-            _commandSendService.SendToAll(SkyPiratesCommand.Create(0, tick, default(TickSyncCommand)));
+            _session.Send(default(TickSyncCommand), tick + 1L);
         }
     }
 }

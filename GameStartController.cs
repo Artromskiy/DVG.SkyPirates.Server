@@ -1,78 +1,48 @@
-﻿using Delta.Netcode;
-using Delta;
-using DVG.SkyPirates.Shared.Commands;
-using DVG.SkyPirates.Shared.IServices;
+using DVG;
 using DVG.SkyPirates.Shared.IServices.TickableExecutors;
+using DVG.SkyPirates.Shared.Services.Netcode;
 using System;
 using System.Diagnostics;
 using System.Threading;
-using CommandsRegistry = DVG.Commands.CommandsRegistry;
-using IGenericAction = DVG.IGenericAction;
 
 namespace DVG.SkyPirates.Server
 {
-    public class GameStartController
+    public sealed class GameStartController
     {
         private readonly Riptide.Server _server;
-        private readonly ITimelineService _timeline;
+        private readonly SkyPiratesSessionProvider _session;
         private readonly ITickableService<IPreTickable> _preTickableService;
         private readonly ITickableService<IPostTickable> _postTickableService;
-        private readonly ICommandReciever _recieveService;
-        private readonly Stopwatch _mainSw = new();
-        private readonly Stopwatch _perfSw = new();
+        private readonly Stopwatch _clock = new();
 
-        public GameStartController(Riptide.Server server, ITimelineService timeline, ICommandReciever recieveService, ITickableService<IPreTickable> preTickableService, ITickableService<IPostTickable> postTickableService)
+        public GameStartController(
+            Riptide.Server server,
+            SkyPiratesSessionProvider session,
+            ITickableService<IPreTickable> preTickableService,
+            ITickableService<IPostTickable> postTickableService)
         {
             _server = server;
-            _timeline = timeline;
+            _session = session;
             _preTickableService = preTickableService;
             _postTickableService = postTickableService;
-
-            _recieveService = recieveService;
-            var subscrive = new DirtyCommandCallback(_timeline, _recieveService);
-            CommandsRegistry.ForEach(ref subscrive);
         }
 
         public void Loop()
         {
-            _mainSw.Start();
+            _clock.Start();
             while (true)
             {
-                var ticks = _mainSw.Elapsed.Ticks;
-                int tickFrame = (int)(ticks * Constants.TicksPerSecond / 10_000_000);
-                if (_timeline.CurrentTick != tickFrame)
+                long targetStep = _clock.Elapsed.Ticks * Constants.TicksPerSecond / TimeSpan.TicksPerSecond;
+                if (_session.CurrentStep != targetStep)
                 {
-                    _perfSw.Restart();
                     _server.Update();
-                    _preTickableService.Tick(tickFrame);
-                    _timeline.Tick(tickFrame);
-                    _postTickableService.Tick(tickFrame);
-                    _perfSw.Stop();
-                    Console.WriteLine($"Elapsed: {_perfSw.Elapsed.TotalMilliseconds}");
+                    int tick = checked((int)targetStep);
+                    _preTickableService.Tick(tick);
+                    _session.Tick(targetStep);
+                    _postTickableService.Tick(tick);
                 }
 
                 Thread.Yield();
-            }
-        }
-
-        private readonly struct DirtyCommandCallback : IGenericAction
-        {
-            private readonly ITimelineService _timelineService;
-            private readonly ICommandReciever _commandRecieveService;
-
-            public DirtyCommandCallback(ITimelineService timelineService, ICommandReciever commandRecieveService)
-            {
-                _timelineService = timelineService;
-                _commandRecieveService = commandRecieveService;
-            }
-
-            public void Invoke<T>()
-            {
-                var timeline = _timelineService;
-                _commandRecieveService.RegisterReciever<T>((c) =>
-                {
-                    timeline.DirtyTick = Maths.Min(timeline.DirtyTick, SkyPiratesCommand.GetTick(c));
-                });
             }
         }
     }
