@@ -35,7 +35,7 @@ namespace DVG.SkyPirates.Server.Services
             {
                 if (GeneratedCommands.GetRegistration<T>().IsPredicted)
                 {
-                    _commandSendService.SendToAll(cmd, unchecked((int)cmd.Header.Key.AuthorId.Value));
+                    _commandSendService.SendToAll(cmd, (int)cmd.Header.Key.AuthorId.Value);
                 }
                 else
                 {
