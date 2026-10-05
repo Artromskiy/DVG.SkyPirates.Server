@@ -1,5 +1,4 @@
 using DVG;
-using DVG.SkyPirates.Shared.IServices.TickableExecutors;
 using DVG.SkyPirates.Shared.Services.Netcode;
 using System;
 using System.Diagnostics;
@@ -11,20 +10,17 @@ namespace DVG.SkyPirates.Server
     {
         private readonly Riptide.Server _server;
         private readonly SkyPiratesSessionProvider _session;
-        private readonly ITickableService<IPreTickable> _preTickableService;
-        private readonly ITickableService<IPostTickable> _postTickableService;
+        private readonly SkyPiratesSessionTickLoop _sessionTickLoop;
         private readonly Stopwatch _clock = new();
 
         public GameStartController(
             Riptide.Server server,
             SkyPiratesSessionProvider session,
-            ITickableService<IPreTickable> preTickableService,
-            ITickableService<IPostTickable> postTickableService)
+            SkyPiratesSessionTickLoop sessionTickLoop)
         {
             _server = server;
             _session = session;
-            _preTickableService = preTickableService;
-            _postTickableService = postTickableService;
+            _sessionTickLoop = sessionTickLoop;
         }
 
         public void Loop()
@@ -36,10 +32,7 @@ namespace DVG.SkyPirates.Server
                 if (_session.CurrentStep != targetStep)
                 {
                     _server.Update();
-                    int tick = checked((int)targetStep);
-                    _preTickableService.Tick(tick);
-                    _session.Tick(targetStep);
-                    _postTickableService.Tick(tick);
+                    _sessionTickLoop.Tick(targetStep);
                 }
 
                 Thread.Yield();
